@@ -1,0 +1,115 @@
+<html>
+	<head>
+		<script src="http://ajax.googleapis.com/ajax/libs/jquery/1.6.2/jquery.min.js" type="text/javascript"></script>
+		<script type="text/javascript" charset="utf-8">
+			var dimension = 30;
+			var liveCellProbability = 0.5;
+			var board;
+			var cells;
+			
+			$(document).ready(function() {
+				board = $('#board');
+				initializeBoard();
+				cells = board.find('td');
+				randomizeCells();
+				simulateGeneration();
+			});
+			
+			function initializeBoard() {
+				var rows = [];
+				for(var noOfRows = 0; noOfRows < dimension; noOfRows++) {
+					rows.push('<tr>');
+					for(var noOfColumns = 0; noOfColumns < dimension; noOfColumns++) {
+						rows.push('<td>&nbsp;</td>');
+					}
+					rows.push('</tr>');
+				}
+				rows = rows.join('');
+				board.append($(rows));
+			}
+			
+			function randomizeCells() {
+				for(var row = 0; row < dimension; row++) {
+					for(var column = 0; column < dimension; column++) {
+						var cell = getCell(row, column);
+						if(Math.random() > liveCellProbability) { cell.addClass('alive'); }
+						else { cell.removeClass('alive'); }
+					}
+				}
+			}
+			
+			function simulateGeneration() {
+				setupNextGeneration();
+				renderNextGeneration();
+				setTimeout('simulateGeneration()', 200);
+			}
+			
+			function setupNextGeneration() {
+				for(var row = 0; row < dimension; row++) {
+					for(var column = 0; column < dimension; column++) {
+						var cell = getCell(row, column);
+						var neighbours = getLiveNeighboursCount(row, column);
+						cell.attr('isAlive', 'false');
+						
+						if(isCellAlive(row, column)) {
+							if(neighbours === 2 || neighbours === 3) {
+								cell.attr('isAlive', 'true');
+							}
+						} else if(neighbours === 3) {
+							cell.attr('isAlive', 'true');
+						}
+					}
+				}
+			}
+			
+			function renderNextGeneration() {
+				cells.each(function() {
+					var cell = $(this);
+					cell.removeClass('alive');
+					if(cell.attr('isAlive') === 'true') cell.addClass('alive');
+					cell.removeAttr('isAlive');
+				});
+			}
+			
+			function getLiveNeighboursCount(row, column) {
+				var count = 0;
+				if(isCellAlive(row-1, column-1)) count++;
+				if(isCellAlive(row, column-1)) count++;
+				if(isCellAlive(row+1, column-1)) count++;
+				if(isCellAlive(row-1, column)) count++;
+				if(isCellAlive(row+1, column)) count++;
+				if(isCellAlive(row-1, column+1)) count++;
+				if(isCellAlive(row, column+1)) count++;
+				if(isCellAlive(row+1, column+1)) count++;
+				return count;				
+			}
+			
+			function isCellAlive(row, column) {
+				return getCell(row, column).attr('class') === 'alive';
+			}
+			
+			function getCell(x, y) {
+				if(x >= dimension) { x = 0; }
+				if(y >= dimension) { y = 0; }
+				if(x < 0) { x = dimension - 1; }
+				if(y < 0) { y = dimension - 1; }
+				
+				return $(cells[y * dimension + x]);
+			}
+		</script>
+		<style type="text/css" media="screen">
+			td {
+				border: solid 1px grey;
+				width: 15px;
+			}
+			
+			td.alive {
+				background-color: red;
+			}
+		</style>
+	</head>	
+	<body id="index">
+		<table id="board">
+		</table>
+	</body>
+</html>
